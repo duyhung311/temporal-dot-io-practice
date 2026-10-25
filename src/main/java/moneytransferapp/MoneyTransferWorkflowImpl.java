@@ -4,8 +4,11 @@ package moneytransferapp;
 import io.temporal.activity.ActivityCancellationType;
 import io.temporal.activity.ActivityOptions;
 //import io.temporal.worker.;
+import io.temporal.failure.ApplicationFailure;
 import io.temporal.workflow.Workflow;
 import io.temporal.common.RetryOptions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.HashMap;
@@ -14,6 +17,7 @@ import java.util.Map;
 public class MoneyTransferWorkflowImpl implements MoneyTransferWorkflow {
     private static final String WITHDRAW = "Withdraw";
     static final String APPROVE_TRANSFER = "APPROVE_TRANSFER";
+    private static final Logger log = LoggerFactory.getLogger(MoneyTransferWorkflowImpl.class);
     private boolean approve = false;
     // RetryOptions specify how to automatically handle retries when Activities fail
     private final RetryOptions retryoptions = RetryOptions.newBuilder()
@@ -55,6 +59,10 @@ public class MoneyTransferWorkflowImpl implements MoneyTransferWorkflow {
 
         if (accountActivityStub.requireApproval(amountToTransfer)){
             Workflow.await(Duration.ofMinutes(5), () -> approve);
+            if (!approve) {
+                log.info("No approval was made. Cancelling transaction with amount {}}", amountToTransfer);
+                throw ApplicationFailure.newFailure("No approval was made. Cancelling transaction", "ApprovalTimeout");
+            }
         }
 
         // Stage 1: Withdraw funds from source
