@@ -1,6 +1,7 @@
 // @@@SNIPSTART money-transfer-java-workflow-interface
 package moneytransferapp;
 
+import io.temporal.workflow.SignalMethod;
 import io.temporal.workflow.WorkflowInterface;
 import io.temporal.workflow.WorkflowMethod;
 
@@ -10,5 +11,8 @@ public interface MoneyTransferWorkflow {
     // from the 'temporal' CLI utility.
     @WorkflowMethod
     void transfer(TransactionDetails transaction);
+
+    @SignalMethod(name = "approveOrder")
+    void approveOrder();
 }
 // @@@SNIPEND

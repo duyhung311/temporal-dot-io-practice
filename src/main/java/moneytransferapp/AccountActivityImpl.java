@@ -40,5 +40,10 @@ public class AccountActivityImpl implements AccountActivity {
         System.out.printf("\nRefunding $%d to account %s.\n[ReferenceId: %s]\n", amount, accountId, referenceId);
         System.out.flush();
    }
+
+    @Override
+    public boolean requireApproval(int amount) {
+        return amount > 50;
+    }
 }
 // @@@SNIPEND

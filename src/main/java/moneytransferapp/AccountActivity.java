@@ -17,5 +17,8 @@ public interface AccountActivity {
     // Compensate a failed deposit by refunding to the original account
     @ActivityMethod
     void refund(String accountId, String referenceId, int amount);
+
+    @ActivityMethod
+    boolean requireApproval(int amount);
 }
 // @@@SNIPEND

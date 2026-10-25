@@ -1,7 +1,9 @@
 // @@@SNIPSTART money-transfer-java-workflow-implementation
 package moneytransferapp;
 
+import io.temporal.activity.ActivityCancellationType;
 import io.temporal.activity.ActivityOptions;
+//import io.temporal.worker.;
 import io.temporal.workflow.Workflow;
 import io.temporal.common.RetryOptions;
 
@@ -11,7 +13,8 @@ import java.util.Map;
 
 public class MoneyTransferWorkflowImpl implements MoneyTransferWorkflow {
     private static final String WITHDRAW = "Withdraw";
-
+    static final String APPROVE_TRANSFER = "APPROVE_TRANSFER";
+    private boolean approve = false;
     // RetryOptions specify how to automatically handle retries when Activities fail
     private final RetryOptions retryoptions = RetryOptions.newBuilder()
         .setInitialInterval(Duration.ofSeconds(1)) // Wait 1 second before first retry
@@ -49,6 +52,10 @@ public class MoneyTransferWorkflowImpl implements MoneyTransferWorkflow {
         String destinationAccountId = transaction.getDestinationAccountId();
         String transactionReferenceId = transaction.getTransactionReferenceId();
         int amountToTransfer = transaction.getAmountToTransfer();
+
+        if (accountActivityStub.requireApproval(amountToTransfer)){
+            Workflow.await(Duration.ofMinutes(5), () -> approve);
+        }
 
         // Stage 1: Withdraw funds from source
         try {
@@ -103,6 +110,11 @@ public class MoneyTransferWorkflowImpl implements MoneyTransferWorkflow {
             // Rethrowing the exception causes a Workflow Task failure
             throw(e);
         }
+    }
+
+    @Override
+    public void approveOrder() {
+        approve = true;
     }
 }
 // @@@SNIPEND
